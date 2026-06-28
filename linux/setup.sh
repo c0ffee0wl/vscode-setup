@@ -165,10 +165,24 @@ install_copilot() {
         return 0
     fi
 
+    # Hide the bundled GitHub.copilot-chat builtin from the installer. If the
+    # builtin is visible at install time, VS Code copies its isBuiltin /
+    # isApplicationScoped metadata onto our user vsix; that user extension is
+    # then dropped as an "obsolete builtin" at runtime (when the same env var
+    # hides the builtin), so the extension never loads. Exporting the var here
+    # makes 'code --install-extension' write clean metadata.
+    export VSCODE_SKIP_BUILTIN_EXTENSIONS="GitHub.copilot-chat"
+
+    # Repair any previously poisoned install. A poisoned copy is marked as a
+    # user built-in, so a plain reinstall keeps isBuiltin; only an explicit
+    # force-uninstall clears it. Harmless no-op on a clean system.
+    log "Removing any prior GitHub.copilot-chat install for a clean slate..."
+    code --uninstall-extension "GitHub.copilot-chat" --force > /dev/null 2>&1 || true
+
     log "Installing/updating Copilot extension from: $vsix"
     code --install-extension "$vsix" --force
 
-    log "Writing VSCODE_SKIP_BUILTIN_EXTENSIONS to ~/.profile..."
+    log "Persisting VSCODE_SKIP_BUILTIN_EXTENSIONS to ~/.profile..."
     update_profile_export "VSCODE_SKIP_BUILTIN_EXTENSIONS" "GitHub.copilot-chat"
     ensure_zprofile_sources_profile
 }
