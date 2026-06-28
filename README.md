@@ -30,7 +30,7 @@ Helpers and the VS Code install steps are lifted from
 
 | Flag | Purpose |
 |------|---------|
-| `--copilot-vsix <path\|dir>` | Install/update a Copilot extension from a `.vsix` file, or the highest-versioned `copilot*.vsix` in a directory. Also writes the `VSCODE_SKIP_BUILTIN_EXTENSIONS` profile export. Skipped cleanly if no vsix is found. |
+| `--copilot-vsix <path\|dir>` | Install/update a Copilot extension from a `.vsix` file, or the highest-versioned `copilot*.vsix` in a directory. Also writes the `VSCODE_SKIP_BUILTIN_EXTENSIONS` profile export. Exports that variable **before** installing and force-removes any prior `GitHub.copilot-chat` copy, so the override is written with clean metadata and loads on first launch. Skipped cleanly if no vsix is found. |
 | `--force`, `-f`, `--yes`, `-y` | Non-interactive; answer "Yes" to prompts. |
 | `--no`, `-n` | Non-interactive; answer "No" to prompts. |
 | `--help`, `-h` | Show help. |
