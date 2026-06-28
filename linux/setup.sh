@@ -70,6 +70,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --copilot-vsix=*)
             COPILOT_VSIX="${1#*=}"
+            [[ -z "$COPILOT_VSIX" ]] && error "--copilot-vsix requires a path argument"
             shift
             ;;
         --help|-h)
@@ -97,20 +98,23 @@ fi
 # Step 1: Install Visual Studio Code (lifted from linux-setup; unconditional)
 #############################################################################
 install_vscode() {
-    if ! has_desktop_environment; then
-        warn "No desktop environment detected - installing VS Code anyway (usable as CLI / remote host)."
-    fi
-
-    log "Installing Visual Studio Code..."
     if command -v code &> /dev/null; then
         log "Visual Studio Code is already installed"
         return 0
     fi
 
+    if ! has_desktop_environment; then
+        warn "No desktop environment detected - installing VS Code anyway (usable as CLI / remote host)."
+    fi
+
+    log "Installing Visual Studio Code..."
+
     sudo apt-get install -y gpg
-    curl --proto '=https' --tlsv1.2 -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/microsoft.gpg
-    sudo install -m 644 /tmp/microsoft.gpg /usr/share/keyrings/microsoft.gpg
-    rm -f /tmp/microsoft.gpg
+    local keyfile
+    keyfile="$(mktemp)"
+    curl --proto '=https' --tlsv1.2 -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > "$keyfile"
+    sudo install -m 644 "$keyfile" /usr/share/keyrings/microsoft.gpg
+    rm -f "$keyfile"
 
     sudo install -m 644 "$CONFIGS_DIR/vscode.sources" /etc/apt/sources.list.d/vscode.sources
 
@@ -144,13 +148,13 @@ install_copilot() {
     if [ -f "$arg" ]; then
         vsix="$arg"
     elif [ -d "$arg" ]; then
-        vsix="$(find "$arg" -maxdepth 1 -name 'copilot*.vsix' -type f 2>/dev/null | sort -V | tail -n1)"
+        vsix="$(find "$arg" -maxdepth 1 -iname '*copilot*.vsix' -type f 2>/dev/null | sort -V | tail -n1)"
         if [ -z "$vsix" ]; then
-            warn "No copilot*.vsix found in '$arg' - skipping Copilot install and profile export."
+            warn "No Copilot .vsix (matching *copilot*.vsix) found in '$arg' - skipping Copilot install and profile export."
             return 0
         fi
         local count
-        count="$(find "$arg" -maxdepth 1 -name 'copilot*.vsix' -type f 2>/dev/null | wc -l)"
+        count="$(find "$arg" -maxdepth 1 -iname '*copilot*.vsix' -type f 2>/dev/null | wc -l)"
         if [ "$count" -gt 1 ]; then
             warn "Multiple copilot*.vsix in '$arg'; using highest version: $(basename "$vsix")"
         fi

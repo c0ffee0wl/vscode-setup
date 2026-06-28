@@ -51,5 +51,5 @@ linux/scripts/    configure_vscode.py (vendored configure-vscode)
 ## License
 
 This repository is Apache-2.0. `linux/scripts/configure_vscode.py` is vendored
-from [`llm-server`](https://github.com/c0ffee0wl) and retains its origin license
+from the `llm-server` project and retains its origin license
 (GPL-3.0-or-later); see the header in that file.
