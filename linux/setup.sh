@@ -174,15 +174,22 @@ install_copilot() {
 }
 
 #############################################################################
-# Main
+# Main (only runs when executed directly; sourcing the script for tests just
+# defines the functions above without running the installer)
 #############################################################################
-if ! prompt_yes_no "Install VS Code, apply local-LLM settings${COPILOT_VSIX:+, and install the Copilot extension}. Continue?" "Y"; then
-    log "Aborted by user."
-    exit 0
+main() {
+    if ! prompt_yes_no "Install VS Code, apply local-LLM settings${COPILOT_VSIX:+, and install the Copilot extension}. Continue?" "Y"; then
+        log "Aborted by user."
+        exit 0
+    fi
+
+    install_vscode
+    configure_vscode_settings
+    install_copilot "$COPILOT_VSIX"
+
+    log "vscode-setup complete."
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
 fi
-
-install_vscode
-configure_vscode_settings
-install_copilot "$COPILOT_VSIX"
-
-log "vscode-setup complete."
