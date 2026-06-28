@@ -64,6 +64,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --copilot-vsix)
+            [[ -z "$2" || "$2" == --* ]] && error "--copilot-vsix requires a path argument"
             COPILOT_VSIX="$2"
             shift 2
             ;;
