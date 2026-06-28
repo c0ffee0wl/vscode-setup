@@ -77,9 +77,7 @@ while [[ $# -gt 0 ]]; do
             show_usage
             ;;
         *)
-            echo -e "${RED}Error: Unknown option '$1'${NC}"
-            echo "Use --help for usage information"
-            exit 1
+            error "Unknown option '$1'. Use --help for usage information."
             ;;
     esac
 done
@@ -109,7 +107,7 @@ install_vscode() {
 
     log "Installing Visual Studio Code..."
 
-    sudo apt-get install -y gpg
+    sudo apt-get install -y gpg apt-transport-https
     local keyfile
     keyfile="$(mktemp)"
     curl --proto '=https' --tlsv1.2 -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > "$keyfile"
@@ -118,7 +116,6 @@ install_vscode() {
 
     sudo install -m 644 "$CONFIGS_DIR/vscode.sources" /etc/apt/sources.list.d/vscode.sources
 
-    sudo apt-get install -y apt-transport-https
     sudo apt-get update
     sudo apt-get install -y code
 }
@@ -148,14 +145,14 @@ install_copilot() {
     if [ -f "$arg" ]; then
         vsix="$arg"
     elif [ -d "$arg" ]; then
-        vsix="$(find "$arg" -maxdepth 1 -iname '*copilot*.vsix' -type f 2>/dev/null | sort -V | tail -n1)"
-        if [ -z "$vsix" ]; then
+        local -a matches
+        mapfile -t matches < <(find "$arg" -maxdepth 1 -iname '*copilot*.vsix' -type f 2>/dev/null | sort -V)
+        if [ "${#matches[@]}" -eq 0 ]; then
             warn "No Copilot .vsix (matching *copilot*.vsix) found in '$arg' - skipping Copilot install and profile export."
             return 0
         fi
-        local count
-        count="$(find "$arg" -maxdepth 1 -iname '*copilot*.vsix' -type f 2>/dev/null | wc -l)"
-        if [ "$count" -gt 1 ]; then
+        vsix="${matches[-1]}"
+        if [ "${#matches[@]}" -gt 1 ]; then
             warn "Multiple copilot*.vsix in '$arg'; using highest version: $(basename "$vsix")"
         fi
     else
@@ -179,12 +176,7 @@ install_copilot() {
 #############################################################################
 # Main
 #############################################################################
-if [ -n "$COPILOT_VSIX" ]; then
-    confirm_msg="Install VS Code, apply local-LLM settings, and install the Copilot extension. Continue?"
-else
-    confirm_msg="Install VS Code and apply local-LLM settings. Continue?"
-fi
-if ! prompt_yes_no "$confirm_msg" "Y"; then
+if ! prompt_yes_no "Install VS Code, apply local-LLM settings${COPILOT_VSIX:+, and install the Copilot extension}. Continue?" "Y"; then
     log "Aborted by user."
     exit 0
 fi
