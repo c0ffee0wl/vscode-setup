@@ -5,8 +5,8 @@
 # ///
 #
 # Vendored from /opt/llm-server/configure_vscode.py — keep in sync with upstream.
-# Origin license: GPL-3.0-or-later (llm-server). This file retains that license
-# even though the vscode-setup repository is otherwise Apache-2.0.
+# Licensed under Apache-2.0 (relicensed by the author for this repository,
+# which is Apache-2.0 throughout).
 """
 Configure VS Code settings for local LLM mode.
 

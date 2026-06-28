@@ -43,7 +43,7 @@ Layout mirrors the sibling installers (`llm-setup`, `claude-litellm`, `ct-dfir-l
 ## Conventions you must preserve
 
 - **`linux/common.sh` is lifted near-verbatim from `/opt/linux-setup/linux-setup.sh`.** Keep its helpers (`log`/`warn`/`error`, `prompt_yes_no`, `update_profile_export`, `ensure_zprofile_sources_profile`, `has_desktop_environment`, `is_kali_linux`) faithful to upstream rather than refactoring them. `update_profile_export` is the only sanctioned way to edit `~/.profile` (idempotent). The unused `BLUE`/`FORCE_MODE`/`NO_MODE` shellcheck warnings come from this lift and are accepted.
-- **`linux/scripts/configure_vscode.py` is vendored from `/opt/llm-server`.** Keep it in sync with upstream; it retains its origin license **GPL-3.0-or-later** (this repo is otherwise Apache-2.0) — see its header. It is run through `uv` using its PEP 723 block (`dependencies = ["json-five"]`), so `uv` is a hard requirement (no python3 fallback).
+- **`linux/scripts/configure_vscode.py` is vendored from `/opt/llm-server`.** Keep it in sync with upstream; it is Apache-2.0 like the rest of the repo (relicensed by the author) — see its header. It is run through `uv` using its PEP 723 block (`dependencies = ["json-five"]`), so `uv` is a hard requirement (no python3 fallback).
 - **`configure_vscode.py` has no `--user` flag.** Its default scope already *is* user settings (`~/.config/Code/User/settings.json`). Do not pass `--user` — it will error.
 
 ## Integration with ct-dfir-llm

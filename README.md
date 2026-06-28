@@ -1,17 +1,17 @@
 # vscode-setup
 
-Standalone installer for Visual Studio Code on Debian-based systems, laid out
-to mirror the sibling installers (`linux/{common.sh,configs,scripts,setup.sh}`).
-It:
+Installs Visual Studio Code on Debian-based systems. It uses the same
+`linux/{common.sh,configs,scripts,setup.sh}` layout as the sibling installers,
+and it:
 
 1. Installs VS Code from Microsoft's apt repository.
-2. Applies local-LLM VS Code settings via a vendored `configure-vscode`
-   (`linux/scripts/configure_vscode.py`, run with [uv](https://docs.astral.sh/uv/)
-   — only dependency is `json-five`, resolved from PEP 723 metadata).
-3. Optionally installs/updates a GitHub Copilot `.vsix` extension and writes
+2. Applies local-LLM VS Code settings with a vendored `configure-vscode`
+   (`linux/scripts/configure_vscode.py`), run via [uv](https://docs.astral.sh/uv/).
+   Its one dependency, `json-five`, comes from the script's PEP 723 metadata.
+3. Optionally installs or updates a GitHub Copilot `.vsix` and writes
    `export VSCODE_SKIP_BUILTIN_EXTENSIONS="GitHub.copilot-chat"` to `~/.profile`.
 
-Helpers and the VS Code install logic are lifted from
+Helpers and the VS Code install steps are lifted from
 [`linux-setup`](https://github.com/c0ffee0wl/linux-setup).
 
 ## Requirements
@@ -50,6 +50,5 @@ linux/scripts/    configure_vscode.py (vendored configure-vscode)
 
 ## License
 
-This repository is Apache-2.0. `linux/scripts/configure_vscode.py` is vendored
-from the `llm-server` project and retains its origin license
-(GPL-3.0-or-later); see the header in that file.
+Apache-2.0. `linux/scripts/configure_vscode.py` is vendored from the
+`llm-server` project and relicensed under Apache-2.0 for this repository.
