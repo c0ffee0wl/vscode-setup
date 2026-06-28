@@ -139,6 +139,9 @@ configure_vscode_settings() {
 install_copilot() {
     local arg="$1"
     local vsix=""
+    # Same id must be hidden at install, force-uninstalled, and persisted — bind
+    # it once so the three can never drift apart (drift = the silent-drop bug).
+    local ext_id="GitHub.copilot-chat"
 
     [ -z "$arg" ] && return 0  # not requested
 
@@ -171,19 +174,19 @@ install_copilot() {
     # then dropped as an "obsolete builtin" at runtime (when the same env var
     # hides the builtin), so the extension never loads. Exporting the var here
     # makes 'code --install-extension' write clean metadata.
-    export VSCODE_SKIP_BUILTIN_EXTENSIONS="GitHub.copilot-chat"
+    export VSCODE_SKIP_BUILTIN_EXTENSIONS="$ext_id"
 
     # Repair any previously poisoned install. A poisoned copy is marked as a
     # user built-in, so a plain reinstall keeps isBuiltin; only an explicit
     # force-uninstall clears it. Harmless no-op on a clean system.
-    log "Removing any prior GitHub.copilot-chat install for a clean slate..."
-    code --uninstall-extension "GitHub.copilot-chat" --force > /dev/null 2>&1 || true
+    log "Removing any prior $ext_id install for a clean slate..."
+    code --uninstall-extension "$ext_id" --force > /dev/null 2>&1 || true
 
     log "Installing/updating Copilot extension from: $vsix"
     code --install-extension "$vsix" --force
 
     log "Persisting VSCODE_SKIP_BUILTIN_EXTENSIONS to ~/.profile..."
-    update_profile_export "VSCODE_SKIP_BUILTIN_EXTENSIONS" "GitHub.copilot-chat"
+    update_profile_export "VSCODE_SKIP_BUILTIN_EXTENSIONS" "$ext_id"
     ensure_zprofile_sources_profile
 }
 

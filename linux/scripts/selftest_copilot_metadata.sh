@@ -108,7 +108,7 @@ run_install_copilot() {  # $1 = HOME dir
         export HOME="$1"
         set --                       # so setup.sh's arg parser sees no args
         # shellcheck disable=SC1090
-        source "$SETUP" || true      # Task 1 guard keeps main() from running
+        source "$SETUP" || true      # BASH_SOURCE guard keeps main() from running
         set +e
         install_copilot "$VSIX" >/dev/null 2>&1
     )
