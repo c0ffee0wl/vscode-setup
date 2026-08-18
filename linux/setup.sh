@@ -12,10 +12,11 @@
 
 set -eo pipefail
 
-VERSION="1.0"
+VERSION="1.1"
 FORCE_MODE=false
 NO_MODE=false
 COPILOT_VSIX=""
+CAPI_URL=""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIGS_DIR="$SCRIPT_DIR/configs"
@@ -39,6 +40,10 @@ Options:
                              is found, also writes
                              export VSCODE_SKIP_BUILTIN_EXTENSIONS="GitHub.copilot-chat"
                              to ~/.profile.
+  --capi-url <url>           Write export VSCODE_AGENT_HOST_CAPI_URL_OVERRIDE="<url>"
+                             to ~/.profile, pointing the VS Code agent host
+                             (VS Code core, 1.129+) at an OpenAI-compatible
+                             endpoint (e.g. a local LiteLLM proxy).
   --force, -f, --yes, -y     Non-interactive; answer 'Yes' to all prompts
   --no, -n                   Non-interactive; answer 'No' to all prompts
   --help, -h                 Display this help message and exit
@@ -73,6 +78,16 @@ while [[ $# -gt 0 ]]; do
             [[ -z "$COPILOT_VSIX" ]] && error "--copilot-vsix requires a path argument"
             shift
             ;;
+        --capi-url)
+            [[ -z "$2" || "$2" == --* ]] && error "--capi-url requires a URL argument"
+            CAPI_URL="$2"
+            shift 2
+            ;;
+        --capi-url=*)
+            CAPI_URL="${1#*=}"
+            [[ -z "$CAPI_URL" ]] && error "--capi-url requires a URL argument"
+            shift
+            ;;
         --help|-h)
             show_usage
             ;;
@@ -81,6 +96,12 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Callers pass --capi-url as a static literal, so a malformed value is a bug,
+# not a runtime condition — reject it up front, before any install work.
+if [[ -n "$CAPI_URL" && ! "$CAPI_URL" =~ ^https?:// ]]; then
+    error "--capi-url must be an http(s):// URL, got '$CAPI_URL'"
+fi
 
 # Warn (do not abort) if running as root
 if [[ $EUID -eq 0 ]]; then
@@ -191,6 +212,23 @@ install_copilot() {
 }
 
 #############################################################################
+# Step 4: Optional agent-host endpoint override + profile export
+#############################################################################
+# Unlike VSCODE_SKIP_BUILTIN_EXTENSIONS (gated on a vsix actually installing,
+# because it breaks Copilot without the replacement extension), this export is
+# gated only on the flag: it targets the agent-host process VS Code core
+# (1.129+) runs either way, and setting it is opt-in by definition.
+configure_agent_host_capi_url() {
+    local url="$1"
+
+    [ -z "$url" ] && return 0  # not requested
+
+    log "Persisting VSCODE_AGENT_HOST_CAPI_URL_OVERRIDE to ~/.profile..."
+    update_profile_export "VSCODE_AGENT_HOST_CAPI_URL_OVERRIDE" "$url"
+    ensure_zprofile_sources_profile
+}
+
+#############################################################################
 # Main (only runs when executed directly; sourcing the script for tests just
 # defines the functions above without running the installer)
 #############################################################################
@@ -203,6 +241,7 @@ main() {
     install_vscode
     configure_vscode_settings
     install_copilot "$COPILOT_VSIX"
+    configure_agent_host_capi_url "$CAPI_URL"
 
     log "vscode-setup complete."
 }
